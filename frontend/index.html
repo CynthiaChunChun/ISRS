@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>資安表單審核系統</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="brand">資安表單審核系統</div>
+            <nav>
+                <button class="nav-button active" data-view="dashboard">儀表板</button>
+                <button class="nav-button" data-view="new-form">新增申請</button>
+                <button class="nav-button" data-view="my-requests">我的申請</button>
+                <button class="nav-button" data-view="review">待簽核</button>
+                <button class="nav-button" data-view="evaluation">系統開發評估</button>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <section id="dashboard" class="view active">
+                <h1>儀表板</h1>
+                <div class="card-grid">
+                    <div class="card">
+                        <h2>待處理</h2>
+                        <p id="pendingCount">0</p>
+                    </div>
+                    <div class="card">
+                        <h2>申請中</h2>
+                        <p id="inProgressCount">0</p>
+                    </div>
+                    <div class="card">
+                        <h2>已完成</h2>
+                        <p id="closedCount">0</p>
+                    </div>
+                </div>
+                <div class="section-card">
+                    <h2>最近申請</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>表單編號</th>
+                                <th>文件編號</th>
+                                <th>申請日期</th>
+                                <th>狀態</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentRequests"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="new-form" class="view">
+                <h1>新增申請</h1>
+                <form id="requestForm">
+                    <div class="form-row">
+                        <label for="docNo">文件編號</label>
+                        <input id="docNo" name="docNo" type="text" required maxlength="20" placeholder="例如 IS-D-022">
+                    </div>
+                    <div class="form-row">
+                        <label for="formType">表單類型</label>
+                        <select id="formType" name="formType" required>
+                            <option value="">請選擇</option>
+                            <option value="FIREWALL">防火牆進出規則申請表 (IS-D-022)</option>
+                            <option value="INFO_SERVICE">資訊服務申請表 (IS-D-025)</option>
+                            <option value="AUTH_INVENTORY">帳號權限清查紀錄表 (IS-D-029)</option>
+                            <option value="CORRECTIVE">矯正處理單 (IS-D-043)</option>
+                            <option value="SYS_DEVELOP">資訊系統開發申請表 (IS-D-045)</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label for="version">版本</label>
+                        <input id="version" name="version" type="text" required maxlength="10" placeholder="例如 1.1">
+                    </div>
+                    <div class="form-row">
+                        <label for="comments">申請說明</label>
+                        <textarea id="comments" name="comments" rows="4" placeholder="請輸入申請內容或說明"></textarea>
+                    </div>
+
+                    <!-- Firewall Fields -->
+                    <div class="form-section firewall-fields hidden" id="firewallSection">
+                        <h3>防火牆進出規則申請表</h3>
+                        <div class="form-row">
+                            <label for="applicant">申請人 *</label>
+                            <input id="applicant" name="applicant" type="text" required>
+                        </div>
+                        <div class="form-row">
+                            <label for="sourceIp">來源 IP *</label>
+                            <input id="sourceIp" name="sourceIp" type="text" maxlength="45" required placeholder="例如 10.0.0.1">
+                        </div>
+                        <div class="form-row">
+                            <label for="destinationIp">目的 IP *</label>
+                            <input id="destinationIp" name="destinationIp" type="text" maxlength="45" required placeholder="例如 192.168.0.1">
+                        </div>
+                        <div class="form-row">
+                            <label for="port">Port *</label>
+                            <input id="port" name="port" type="text" maxlength="10" required placeholder="例如 443">
+                        </div>
+                        <div class="form-row">
+                            <label for="hostName">主機名稱</label>
+                            <input id="hostName" name="hostName" type="text">
+                        </div>
+                        <div class="form-row">
+                            <label for="authMethod">授權方式</label>
+                            <input id="authMethod" name="authMethod" type="text">
+                        </div>
+                        <div class="form-row">
+                            <label for="doNat">是否做 NAT</label>
+                            <select id="doNat" name="doNat">
+                                <option value="">請選擇</option>
+                                <option value="Y">是</option>
+                                <option value="N">否</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <label for="responsiblePerson">負責人</label>
+                            <input id="responsiblePerson" name="responsiblePerson" type="text">
+                        </div>
+                        <div class="form-row">
+                            <label for="effectiveDate">有效日期</label>
+                            <input id="effectiveDate" name="effectiveDate" type="date">
+                        </div>
+                        <div class="form-row">
+                            <label for="hostPurpose">主機功能用途</label>
+                            <textarea id="hostPurpose" name="hostPurpose" rows="2"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <label for="domainName">Domain Name</label>
+                            <input id="domainName" name="domainName" type="text">
+                        </div>
+                        <div class="form-row">
+                            <label for="osVersion">OS 版本</label>
+                            <input id="osVersion" name="osVersion" type="text">
+                        </div>
+                        <div class="form-row">
+                            <label for="firewall">防火牆</label>
+                            <input id="firewall" name="firewall" type="text">
+                        </div>
+                        <div class="form-row">
+                            <label for="otherNotes">其他說明</label>
+                            <textarea id="otherNotes" name="otherNotes" rows="2"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Info Service Fields -->
+                    <div class="form-section info-service-fields hidden" id="infoServiceSection">
+                        <h3>資訊服務申請表</h3>
+                        <div class="form-row">
+                            <label for="applicant">申請人 *</label>
+                            <input id="applicant" name="applicant" type="text" required>
+                        </div>
+                        <div class="form-row">
+                            <label for="deptManager">部門主管</label>
+                            <input id="deptManager" name="deptManager" type="text">
+                        </div>
+                        <div class="form-row">
+                            <label for="reason">事由</label>
+                            <textarea id="reason" name="reason" rows="2"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <label>申請項目 (可多選)</label>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" name="requestItems" value="applyAccount"> 申請帳號</label>
+                                <label><input type="checkbox" name="requestItems" value="deleteAccount"> 刪除帳號</label>
+                                <label><input type="checkbox" name="requestItems" value="hardwareInstall"> 電腦軟硬體安裝或維修</label>
+                                <label><input type="checkbox" name="requestItems" value="passwordReset"> 密碼重置</label>
+                                <label><input type="checkbox" name="requestItems" value="filePermission"> 檔案權限變更</label>
+                                <label><input type="checkbox" name="requestItems" value="otherSupport"> 其它資訊服務支援</label>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <label for="additionalNotes">補充說明</label>
+                            <textarea id="additionalNotes" name="additionalNotes" rows="3"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <label for="expectedCompletionDate">預定完成日期</label>
+                            <input id="expectedCompletionDate" name="expectedCompletionDate" type="date">
+                        </div>
+                    </div>
+
+                    <!-- Auth Inventory Fields -->
+                    <div class="form-section auth-inventory-fields hidden" id="authInventorySection">
+                        <h3>帳號權限清查紀錄表</h3>
+                        <div class="form-row">
+                            <label for="systemName">系統名稱 *</label>
+                            <input id="systemName" name="systemName" type="text" required>
+                        </div>
+                        <div class="form-row">
+                            <label for="auditDate">清查日期</label>
+                            <input id="auditDate" name="auditDate" type="date">
+                        </div>
+                        <div class="form-row">
+                            <label for="account">帳號</label>
+                            <input id="account" name="account" type="text">
+                        </div>
+                        <div class="form-row">
+                            <label for="user">使用者</label>
+                            <input id="user" name="user" type="text">
+                        </div>
+                        <div class="form-row">
+                            <label for="permissionDesc">權限說明</label>
+                            <textarea id="permissionDesc" name="permissionDesc" rows="2"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <label for="auditNotes">備註</label>
+                            <textarea id="auditNotes" name="auditNotes" rows="2"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Corrective Fields -->
+                    <div class="form-section corrective-fields hidden" id="correctiveSection">
+                        <h3>矯正處理單</h3>
+                        <div class="form-row">
+                            <label for="submitUnit">提出單位</label>
+                            <input id="submitUnit" name="submitUnit" type="text">
+                        </div>
+                        <div class="form-row">
+                            <label for="submitPerson">提出人員</label>
+                            <input id="submitPerson" name="submitPerson" type="text">
+                        </div>
+                        <div class="form-row">
+                            <label for="handleUnit">處理單位</label>
+                            <input id="handleUnit" name="handleUnit" type="text">
+                        </div>
+                        <div class="form-row">
+                            <label for="eventCategory">事件分類</label>
+                            <select id="eventCategory" name="eventCategory">
+                                <option value="">請選擇</option>
+                                <option value="suggestion">建議事項</option>
+                                <option value="observation">觀察事項</option>
+                                <option value="minor">次要缺失</option>
+                                <option value="major">主要缺失</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <label for="eventSource">事件來源</label>
+                            <select id="eventSource" name="eventSource">
+                                <option value="">請選擇</option>
+                                <option value="security">資安/個資</option>
+                                <option value="internalAudit">內部稽核</option>
+                                <option value="externalAudit">外部稽核</option>
+                                <option value="selfReport">資通安全事件自行提出</option>
+                                <option value="other">其他</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <label for="problemDesc">問題或缺失說明</label>
+                            <textarea id="problemDesc" name="problemDesc" rows="3"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <label for="causeAnalysis">原因分析</label>
+                            <textarea id="causeAnalysis" name="causeAnalysis" rows="3"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <label for="handler">處理人員</label>
+                            <input id="handler" name="handler" type="text">
+                        </div>
+                        <div class="form-row">
+                            <label for="improvementPlan">研擬改善對策</label>
+                            <textarea id="improvementPlan" name="improvementPlan" rows="3"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <label for="tempMeasure">暫時性對策及預計完成日期</label>
+                            <textarea id="tempMeasure" name="tempMeasure" rows="2"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <label for="permanentMeasure">永久性矯正措施</label>
+                            <textarea id="permanentMeasure" name="permanentMeasure" rows="3"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <label for="reviewResult">審核結果</label>
+                            <select id="reviewResult" name="reviewResult">
+                                <option value="">請選擇</option>
+                                <option value="closed">結案</option>
+                                <option value="other">其他</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- System Develop Fields -->
+                    <div class="form-section sys-develop-fields hidden" id="sysDevelopSection">
+                        <h3>資訊系統開發申請表</h3>
+                        <div class="form-row">
+                            <label for="systemName">系統名稱 *</label>
+                            <input id="systemName" name="systemName" type="text" required>
+                        </div>
+                        <div class="form-row">
+                            <label for="desiredLaunchDate">希望上線日期</label>
+                            <input id="desiredLaunchDate" name="desiredLaunchDate" type="date">
+                        </div>
+                        <div class="form-row">
+                            <label for="applicantUnit">申請單位及承辦人 (分機)</label>
+                            <input id="applicantUnit" name="applicantUnit" type="text">
+                        </div>
+                        <div class="form-row">
+                            <label for="requirementType">需求種類</label>
+                            <select id="requirementType" name="requirementType">
+                                <option value="">請選擇</option>
+                                <option value="newSystem">新增系統或功能</option>
+                                <option value="modifySystem">系統功能修改</option>
+                                <option value="other">其他</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <label for="currentOperation">目前作業情形</label>
+                            <textarea id="currentOperation" name="currentOperation" rows="2"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <label for="plannedGoals">規劃目標與需求功能說明</label>
+                            <textarea id="plannedGoals" name="plannedGoals" rows="3"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <label for="expectedBenefits">預期效益</label>
+                            <textarea id="expectedBenefits" name="expectedBenefits" rows="2"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <label for="securityLevel">防護需求分級</label>
+                            <select id="securityLevel" name="securityLevel">
+                                <option value="">請選擇</option>
+                                <option value="low">普</option>
+                                <option value="medium">中</option>
+                                <option value="high">高</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <label for="otherSecurityReq">其他安全需求</label>
+                            <textarea id="otherSecurityReq" name="otherSecurityReq" rows="2"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit">送出申請</button>
+                        <button type="button" id="saveDraft">儲存草稿</button>
+                    </div>
+                </form>
+            </section>
+
+            <section id="my-requests" class="view">
+                <h1>我的申請</h1>
+                <div class="filter-row">
+                    <input id="searchText" type="text" placeholder="搜尋表單編號或文件編號">
+                    <select id="statusFilter">
+                        <option value="">全部狀態</option>
+                        <option value="PENDING">待審核</option>
+                        <option value="IN_PROGRESS">審核中</option>
+                        <option value="CLOSED">已完成</option>
+                        <option value="REJECTED">已退回</option>
+                    </select>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>表單編號</th>
+                            <th>文件編號</th>
+                            <th>申請日期</th>
+                            <th>狀態</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="requestList"></tbody>
+                </table>
+            </section>
+
+            <section id="review" class="view">
+                <h1>待簽核</h1>
+                <div class="section-card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>表單編號</th>
+                                <th>文件編號</th>
+                                <th>申請日期</th>
+                                <th>申請人</th>
+                                <th>簽核狀態</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reviewList"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="evaluation" class="view">
+                <h1>系統開發評估</h1>
+                <form id="evaluationForm">
+                    <div class="form-row">
+                        <label for="evalFormId">表單編號</label>
+                        <input id="evalFormId" name="evalFormId" type="text" required readonly>
+                    </div>
+                    <div class="form-row">
+                        <label for="evalResult">評估結果</label>
+                        <select id="evalResult" name="evalResult" required>
+                            <option value="">請選擇</option>
+                            <option value="APPROVED">同意開發</option>
+                            <option value="DEFERRED">暫不開發</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label for="testResult">測試結果</label>
+                        <textarea id="testResult" name="testResult" rows="3"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <label for="releaseDate">預計上線日期</label>
+                        <input id="releaseDate" name="releaseDate" type="date">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit">提交評估</button>
+                    </div>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
